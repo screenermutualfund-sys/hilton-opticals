@@ -157,13 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('contact-form');
   if (form) {
     form.addEventListener('submit', (e) => {
-      e.preventDefault();
       let valid = true;
       const name = form.querySelector('#form-name');
       const email = form.querySelector('#form-email');
       const phone = form.querySelector('#form-phone');
       const message = form.querySelector('#form-message');
-      const status = document.getElementById('form-status');
 
       if (!name || !name.value.trim()) valid = false;
       if (!email || !email.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) valid = false;
@@ -171,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!message || !message.value.trim()) valid = false;
 
       if (!valid) {
+        e.preventDefault();
         alert('Please fill in all required fields with valid details.');
         return;
       }
@@ -180,34 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.textContent = 'Sending...';
         submitBtn.disabled = true;
       }
-
-      fetch(form.action, {
-        method: 'POST',
-        body: new FormData(form),
-        headers: { 'Accept': 'application/json' }
-      }).then(res => {
-        if (res.ok) {
-          form.reset();
-          if (status) {
-            status.textContent = 'Thank you! Your message has been sent successfully.';
-            status.style.display = 'block';
-            status.style.color = '#22c55e';
-          }
-        } else {
-          throw new Error('Form submission failed');
-        }
-      }).catch(() => {
-        if (status) {
-          status.textContent = 'Something went wrong. Please try again.';
-          status.style.display = 'block';
-          status.style.color = '#ef4444';
-        }
-      }).finally(() => {
-        if (submitBtn) {
-          submitBtn.textContent = 'Submit Message';
-          submitBtn.disabled = false;
-        }
-      });
     });
   }
 
@@ -239,6 +210,31 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
     fadeEls.forEach(el => fadeObs.observe(el));
+  }
+
+  // ===== COLLECTION CARDS STAGGER ANIMATION =====
+  const collectionCards = document.querySelectorAll('.collection-card');
+  if (collectionCards.length) {
+    const cardObs = new IntersectionObserver((entries) => {
+      entries.forEach((entry, idx) => {
+        if (entry.isIntersecting) {
+          const card = entry.target;
+          const delay = Array.from(collectionCards).indexOf(card) * 100;
+          setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+          }, delay);
+          cardObs.unobserve(card);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    collectionCards.forEach(card => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(30px)';
+      card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      cardObs.observe(card);
+    });
   }
 
 });
